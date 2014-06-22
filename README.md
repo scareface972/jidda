@@ -1,8 +1,9 @@
 jidda
 =====
 
-Simple event-driven socket servers based on
-`gevent` and `msgpack`. Usage example:
+Simple, fast, and scalable composable socket
+servers based on `gevent` and `msgpack`. A very
+simple example of a server:
 
 ```python
 from jidda.server import Server
@@ -19,27 +20,28 @@ if __name__ == "__main__":
     app.run()
 ```
 
-You can use middleware that will
-preprocess the request object before it
-is passed to functions listening on the
-events:
+Middleware or request preprocessors can also
+be used, and can be easily registered so they
+can be ran programmatically when the request
+is heard by the server:
 
 ```python
 @app.use
 def logger(req):
-    string = '[%s] - %s' % (req.time, req.peer)
+    string = '[{time}] {peer}'.format(time=req.time, peer=req.peer)
     print(string)
     return req
 ```
 
-Customization of the server-socket is
-also made possible via the `configure_socket`
-decorator:
+You can also preconfigure the server socket
+to, for example, lower the timeout or tweak
+some of the more advanced options using the
+`configure_socket` decorator:
 
 ```python
 @app.configure_socket
 def config(socket):
-    socket.settimeout(0.1)
+    socket.settimeout(0.3)
 ```
 
 And a simple client example that will take
@@ -57,10 +59,16 @@ def respond_connect(res):
     return True
 
 if __name__ == "__main__":
-    client.connect()
+    client.connect(connections=1)
     client.disconnect()
 ```
 
-Currently it only works for Python 2.x because
-there appears to be some problems in the gevent
-library for Python 3.
+Currently `jidda` only works for Python 2.x
+because there appears to be some problems in
+the gevent library for Python 3. There will
+not be any dedicated ports to Python 3 since
+I will not be actively using that platform
+so if you are using Python 3 you will either
+have to wait or (recommended) drop down to
+Python 2 since most libraries are using Python
+2 at the moment.

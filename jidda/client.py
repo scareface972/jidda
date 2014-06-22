@@ -6,9 +6,8 @@ from jidda.wrappers import Response
 from jidda.utils import parse_addr, runner_factory, MiddlewareContext
 
 class Client(object):
-    def __init__(self, addr, connections=1):
+    def __init__(self, addr):
         self.addr = parse_addr(addr)
-        self.connections = connections
         self.greenlets = []
 
         MiddlewareContext().mixin(self)
@@ -24,10 +23,10 @@ class Client(object):
     def callback(self):
         return runner_factory(self, Response)
 
-    def connect(self):
+    def connect(self, connections=1):
         self.greenlets = []
         callback = self.callback
-        for _ in range(self.connections):
+        for _ in range(connections):
             greenlet = spawn(callback, self.connection, self.addr)
             self.greenlets.append(greenlet)
 
