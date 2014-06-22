@@ -1,3 +1,4 @@
+from datetime import datetime
 from socket import SHUT_RDWR, error
 from msgpack import loads, dumps, UnpackException
 from gevent import getcurrent
@@ -8,9 +9,14 @@ class Request(object):
     def __init__(self, socket, addr):
         self.addr = addr
         self.socket = socket
+        self.time = datetime.utcnow()
         self.rfile = self.socket.makefile('rb')
         self.disconnected = False
         self.greenlet = getcurrent()
+
+    @property
+    def peer(self):
+        return ':'.join(map(str, self.addr))
 
     def disconnect(self):
         if self.disconnected:

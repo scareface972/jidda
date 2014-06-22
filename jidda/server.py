@@ -4,16 +4,29 @@ from socket import SOL_SOCKET, SO_REUSEADDR
 from gevent import socket
 from gevent.server import StreamServer
 
-from jidda.utils import parse_addr
+from jidda.events import EventContext
+from jidda.utils import parse_addr, runner_factory
 from jidda.request import Request
 
 class Server(object):
     def __init__(self, addr, timeout=2):
-        self.events = defaultdict(list)
         self.addr = parse_addr(addr)
         self.socket = socket.socket()
         self.timeout = timeout
         self.setup = False
+
+        self.middleware = []
+        self.events = EventContext()
+        self.events.mixin(self)
+
+    def transform_request(self, request):
+        for item in self.middleware:
+            request = item(request)
+        return request
+
+    def use(self, fn):
+        self.middleware.append(fn)
+        return fn
 
     def setup_socket(self):
         if self.setup:
@@ -29,32 +42,12 @@ class Server(object):
         callback(self.socket)
         return callback
 
-    def on(self, event):
-        def wrapper(fn):
-            self.events[event].append(fn)
-            return fn
-        return wrapper
-
-    def trigger(self, event, *args, **kwargs):
-        for item in self.events[event]:
-            if not item(*args, **kwargs):
-                break
-
-    def generate_runner(self):
-        def handle_request(socket, address):
-            request = Request(socket, address)
-            try:
-                self.trigger('connect', request)
-                self.trigger('disconnect', request)
-            except Exception as error:
-                self.trigger('error', error)
-            finally:
-                request.disconnect()
-                self.trigger('teardown', request)
-        return handle_request
+    @property
+    def callback(self):
+        return runner_factory(self, Request, before=self.transform_request)
 
     def run(self, **options):
         self.setup_socket()
-        server = StreamServer(self.socket, self.generate_runner(), **options)
+        server = StreamServer(self.socket, self.callback, **options)
         server.serve_forever()
 
