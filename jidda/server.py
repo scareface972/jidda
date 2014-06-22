@@ -4,8 +4,8 @@ from socket import SOL_SOCKET, SO_REUSEADDR
 from gevent import socket
 from gevent.server import StreamServer
 
-from jidda.events import EventContext
-from jidda.utils import parse_addr, runner_factory, MiddlewareContext
+from jidda.utils import parse_addr, runner_factory, MiddlewareContext, \
+                        EventContext
 from jidda.wrappers import Request
 
 class Server(object):
@@ -42,6 +42,6 @@ class Server(object):
 
     def run(self, **options):
         self.setup_socket()
-        server = StreamServer(sock, self.callback, **options)
+        server = StreamServer(self.socket, self.callback, **options)
         server.serve_forever()
 
