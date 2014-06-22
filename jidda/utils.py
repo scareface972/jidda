@@ -7,7 +7,8 @@ def parse_addr(string):
 def runner_factory(instance, wrapper_class, before=None):
     def runner(*args, **kwargs):
         context = wrapper_class(*args, **kwargs)
-        if before: before(context)
+        if before:
+            before(context)
         try:
             instance.trigger('connect', context)
             instance.trigger('disconnect', context)

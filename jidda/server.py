@@ -9,7 +9,7 @@ from jidda.utils import parse_addr, runner_factory
 from jidda.request import Request
 
 class Server(object):
-    def __init__(self, addr, timeout=2):
+    def __init__(self, addr=None, timeout=2):
         self.addr = parse_addr(addr)
         self.socket = socket.socket()
         self.timeout = timeout
@@ -38,13 +38,17 @@ class Server(object):
         self.socket.listen(256)
         self.setup = True
 
-    def configure_socket(callback):
+    def configure_socket(self, callback):
         callback(self.socket)
         return callback
 
     @property
     def callback(self):
         return runner_factory(self, Request, before=self.transform_request)
+
+    def bind(self, addr):
+        self.addr = parse_addr(addr)
+        return self
 
     def run(self, **options):
         self.setup_socket()
