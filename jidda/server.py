@@ -5,41 +5,31 @@ from gevent import socket
 from gevent.server import StreamServer
 
 from jidda.events import EventContext
-from jidda.utils import parse_addr, runner_factory
-from jidda.request import Request
+from jidda.utils import parse_addr, runner_factory, MiddlewareContext
+from jidda.wrappers import Request
 
 class Server(object):
     def __init__(self, addr=None, timeout=2):
         self.addr = parse_addr(addr)
-        self.socket = socket.socket()
         self.timeout = timeout
-        self.setup = False
 
-        self.middleware = []
-        self.events = EventContext()
-        self.events.mixin(self)
-
-    def transform_request(self, request):
-        for item in self.middleware:
-            request = item(request)
-        return request
-
-    def use(self, fn):
-        self.middleware.append(fn)
-        return fn
+        MiddlewareContext().mixin(self)
+        EventContext().mixin(self)
 
     def setup_socket(self):
-        if self.setup:
+        if hasattr(self, 'socket'):
             return
-        self.socket.setblocking(0)
-        self.socket.settimeout(self.timeout)
-        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind(self.addr)
-        self.socket.listen(256)
-        self.setup = True
+        sock = socket.socket()
+        sock.setblocking(0)
+        sock.settimeout(self.timeout)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind(self.addr)
+        sock.listen(256)
+        self.socket = sock
 
     def configure_socket(self, callback):
-        callback(self.socket)
+        self.setup_socket()
+        callback(sock)
         return callback
 
     @property
@@ -52,6 +42,6 @@ class Server(object):
 
     def run(self, **options):
         self.setup_socket()
-        server = StreamServer(self.socket, self.callback, **options)
+        server = StreamServer(sock, self.callback, **options)
         server.serve_forever()
 

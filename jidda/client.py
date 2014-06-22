@@ -2,16 +2,17 @@ from gevent import spawn, joinall
 from gevent.socket import socket
 
 from jidda.events import EventContext
-from jidda.request import Response
-from jidda.utils import parse_addr, runner_factory
+from jidda.wrappers import Response
+from jidda.utils import parse_addr, runner_factory, MiddlewareContext
 
 class Client(object):
     def __init__(self, addr, connections=1):
         self.addr = parse_addr(addr)
         self.connections = connections
         self.greenlets = []
-        self.events = EventContext()
-        self.events.mixin(self)
+
+        MiddlewareContext().mixin(self)
+        EventContext().mixin(self)
 
     @property
     def connection(self):
