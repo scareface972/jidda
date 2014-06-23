@@ -63,6 +63,42 @@ if __name__ == "__main__":
     client.disconnect()
 ```
 
+## socket.io style apps
+
+To build apps in the style of `socket.io`
+with basic event emitting and what not, you
+can set up a listener on the request object,
+for example:
+
+```python
+@client.on('connect')
+def respond_connect(res):
+    queue = []
+    jobdict = {}
+
+    @res.listeners.on('job')
+    def enqueue_task(data):
+        queue.append(data)
+        greenlet = gevent.spawn(do_job, data)
+        jobdict[data['id']] = greenlet
+
+    res.begin_listening()
+    return True
+```
+
+And then you can basically write the following
+code on the server in order to `emit` the
+_events_ with data, also using the msgpack
+protocol:
+
+```python
+@app.on('connect')
+def connect(req):
+    for job_data in queue:
+        req.emit('job', job_data)
+    return True
+```
+
 Currently `jidda` only works for Python 2.x
 because there appears to be some problems in
 the gevent library for Python 3. There will

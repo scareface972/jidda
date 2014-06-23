@@ -25,15 +25,14 @@ class Request(object):
         fn(self.socket)
         return fn
 
-    def begin_listening(self, interval=0):
+    def begin_listening(self, interval=0, timeout=0.3):
         while not self.disconnected:
-            response = self.recv(needed_event=True)
-            if response is None:
-                continue
-            response, event = response
-            self.listeners.trigger(event, response)
-            if interval:
-                sleep(interval)
+            reader, _, _ = select([self.socket], [], [], timeout)
+            if reader:
+                response, event = self.recv(needed_event=True)
+                self.listeners.trigger(event, response)
+                if interval:
+                    sleep(interval)
 
     @property
     def peer(self):
@@ -53,6 +52,8 @@ class Request(object):
     def recv(self, needed_event=False):
         bits = self.rfile.readline()
         if not bits:
+            if needed_event:
+                return None, None
             return
         content_length = int(bits.strip())
         payload = self.rfile.read(content_length + 1)

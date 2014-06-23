@@ -9,7 +9,7 @@ def respond_connect(res):
     method = choice(['cos','sin'])
     res.send({'need':method, 'times':10})
 
-    print('Requesting %s data:' % (method))
+    print('\x1b[1mRequesting %s data:\x1b[0m' % (method))
 
     @res.listeners.on('cos')
     @res.listeners.on('sin')
@@ -17,9 +17,11 @@ def respond_connect(res):
         counter.append(data)
         if len(counter) == 10:
             res.disconnect()
-        print(data)
         return True
+
     res.begin_listening()
+    for item in counter:
+        print(item)
     return True
 
 @c.on('error')
@@ -28,5 +30,5 @@ def error(exception):
     return True
 
 if __name__ == "__main__":
-    c.connect(connections=10)
+    c.connect(connections=10, async=False)
     c.disconnect()

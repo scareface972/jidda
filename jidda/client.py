@@ -24,11 +24,13 @@ class Client(object):
     def callback(self):
         return runner_factory(self, Response)
 
-    def connect(self, connections=1):
+    def connect(self, connections=1, async=True):
         self.greenlets = []
         callback = self.callback
         for _ in range(connections):
             greenlet = spawn(callback, self.connection, self.addr)
+            if not async:
+                greenlet.join()
             self.greenlets.append(greenlet)
 
     def disconnect(self):
