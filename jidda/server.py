@@ -1,5 +1,3 @@
-from socket import SOL_SOCKET, SO_REUSEADDR
-
 from gevent import socket
 from gevent.server import StreamServer
 

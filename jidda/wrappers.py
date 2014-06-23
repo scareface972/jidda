@@ -3,10 +3,10 @@ from socket import SHUT_RDWR, error
 
 from gevent import getcurrent, sleep
 from gevent.select import select
+
+from jidda.protocol import *
 from jidda.mixins.events import EventContext
 from msgpack import loads, dumps, UnpackException
-
-class BadPayload(Exception): pass
 
 class Request(object):
     def __init__(self, socket, addr):
@@ -50,38 +50,20 @@ class Request(object):
             self.disconnected = True
 
     def recv(self, needed_event=False):
-        bits = self.rfile.readline()
-        if not bits:
-            if needed_event:
-                return None, None
-            return
-        content_length = int(bits.strip())
-        payload = self.rfile.read(content_length + 1)
-        event = self.rfile.readline().strip()
-        if event == ':none':
-            event = None
+        response = recv(self.rfile)
+        event = None
+        if response:
+            response, event = response
 
-        try:
-            payload = loads(payload[:-1])
-            if not needed_event:
-                return payload
-            return payload, event
-
-        except (ValueError, UnpackException) as error:
-            raise BadPayload(error)
+        if not needed_event:
+            return response
+        return response, event
 
     def emit(self, event, data):
         return self.send(data, event_namespace=event)
 
     def send(self, message, event_namespace=None):
-        payload = dumps(message)
-        if event_namespace is None:
-            event_namespace = ":none"
-        string = '{length}\n{payload}\n{namespace}\n'.format(length=len(payload),
-                                                           payload=payload,
-                                                           namespace=event_namespace)
-        self.socket.sendall(string)
-
+        send(self.socket, message, event_namespace)
 
 class Response(Request):
     pass
