@@ -8,17 +8,16 @@ def parse_addr(string):
 
 def runner_factory(instance, wrapper_class, before=None):
     def runner(*args, **kwargs):
-        context = wrapper_class(*args, **kwargs)
-        if before:
-            before(context)
+        request = wrapper_class(*args, **kwargs)
+        if before: before(request)
         try:
-            instance.trigger('connect', context)
-            instance.trigger('disconnect', context)
+            instance.trigger('connect', request)
+            instance.trigger('disconnect', request)
         except Exception as error:
-            instance.trigger('error', context)
+            instance.trigger('error', request)
         finally:
-            context.disconnect()
-            instance.trigger('teardown', context)
+            request.disconnect()
+            instance.trigger('teardown', request)
     return runner
 
 def print_traceback_on_error(traceback):

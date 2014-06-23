@@ -1,12 +1,17 @@
 from msgpack import loads, dumps, UnpackException
-class BadPayload(ValueError): pass
 
-def recv(stream):
+class BadPayload(ValueError): pass
+class BadHeader(ValueError):  pass
+
+def receive_message(stream):
     bits = stream.readline()
     if not bits:
         return
 
-    bits = int(bits.strip())
+    if bits[0] != '#':
+        raise BadHeader("Message doesn't start with '#'")
+
+    bits = int(bits.strip()[1:])
     payload = stream.read(bits+1)[:-1]
     event = stream.readline().strip()
     try:
@@ -14,11 +19,11 @@ def recv(stream):
     except (ValueError, UnpackException) as exception:
         raise BadPayload(exception)
 
-def send(socket, data, event):
+def send_message(socket, data, event):
     payload = dumps(data)
     if event is None:
         event = ':none'
-    message = "{bits}\n{payload}\n{event}\n".format(
+    message = "#{bits}\n{payload}\n{event}\n".format(
             bits=len(payload),
             payload=payload,
             event=event

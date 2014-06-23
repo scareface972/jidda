@@ -5,22 +5,24 @@ c = Client('localhost:6000')
 
 @c.on('connect')
 def respond_connect(res):
-    counter = []
+    res.ctx.counter = []
     method = choice(['cos','sin'])
-    res.send({'need':method, 'times':10})
-
+    res.send({'need':method, 'times':5})
     print('\x1b[1mRequesting %s data:\x1b[0m' % (method))
 
     @res.listeners.on('cos')
     @res.listeners.on('sin')
     def respond_sin(data):
-        counter.append(data)
-        if len(counter) == 10:
+        res.ctx.counter.append(data)
+        if len(res.ctx.counter) == 5:
             res.disconnect()
         return True
+    return True
 
+@c.on('connect')
+def connect(res):
     res.begin_listening()
-    for item in counter:
+    for item in res.ctx.counter:
         print(item)
     return True
 
