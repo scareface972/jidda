@@ -24,4 +24,4 @@
 from jidda.client import Client
 from jidda.server import Server
 
-VERSION = '0.0.9'
+VERSION = '0.0.10'
