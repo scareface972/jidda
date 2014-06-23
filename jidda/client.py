@@ -6,6 +6,8 @@ from jidda.utils import parse_addr, runner_factory
 from jidda.mixins.events import EventContext
 from jidda.mixins.middleware import MiddlewareContext
 
+__all__ = ['Client']
+
 class Client(object):
     def __init__(self, addr):
         self.addr = parse_addr(addr)

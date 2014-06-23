@@ -6,6 +6,7 @@ from jidda.mixins.middleware import MiddlewareContext
 from jidda.utils import parse_addr, runner_factory, print_traceback_on_error
 from jidda.wrappers import Request
 
+__all__ = ['Server']
 
 class Server(object):
     def __init__(self, addr=None, timeout=2):

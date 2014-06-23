@@ -1,5 +1,7 @@
 from msgpack import loads, dumps, UnpackException
 
+__all__ = ['BadPayload','BadHeader','receive_message','send_message']
+
 class BadPayload(ValueError): pass
 class BadHeader(ValueError):  pass
 
