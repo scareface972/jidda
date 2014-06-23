@@ -1,4 +1,3 @@
-from collections import defaultdict
 from socket import SOL_SOCKET, SO_REUSEADDR
 
 from gevent import socket

@@ -18,5 +18,5 @@ def error(exception):
     return True
 
 if __name__ == "__main__":
-    c.connect()
+    c.connect(connections=3)
     c.disconnect()

@@ -33,3 +33,7 @@ class Client(object):
 
     def disconnect(self):
         joinall(self.greenlets)
+        results = []
+        for item in self.greenlets:
+            results.append(item.value)
+        return results
