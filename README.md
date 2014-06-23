@@ -99,6 +99,32 @@ def connect(req):
     return True
 ```
 
+## request-local context
+
+It is possible to share state between functions
+that run during the `connect`, `disconnect`,
+and `teardown` event by utilizing the `ctx`
+attribute of request objects, for example:
+
+```python
+@app.on('connect')
+def connect(req):
+    req.ctx.user = User(...)
+    return True
+
+@app.on('teardown')
+def teardown(req):
+    user = req.ctx.user
+    user.save()
+```
+
+Similar to the `flask.g` object the `Request.ctx`
+or `Response.ctx` object is created per request
+and since it is passed to your functions, it
+isn't a thread-local value.
+
+## Notes
+
 Currently `jidda` only works for Python 2.x
 because there appears to be some problems in
 the gevent library for Python 3. There will
