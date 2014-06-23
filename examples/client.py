@@ -1,11 +1,17 @@
+from random import choice
 from traceback import format_exc
 from jidda.client import Client
 c = Client('localhost:6000')
 
 @c.on('connect')
 def respond_connect(res):
-    print(res.recv())
     counter = []
+    method = choice(['cos','sin'])
+    res.send({'need':method, 'times':10})
+
+    print('Requesting %s data:' % (method))
+
+    @res.listeners.on('cos')
     @res.listeners.on('sin')
     def respond_sin(data):
         counter.append(data)
@@ -22,5 +28,5 @@ def error(exception):
     return True
 
 if __name__ == "__main__":
-    c.connect(connections=3)
+    c.connect(connections=10)
     c.disconnect()

@@ -1,5 +1,5 @@
 from time import time
-from math import sin
+from math import sin, cos
 from traceback import format_exc
 from jidda.server import Server
 server = Server('localhost:6000')
@@ -12,9 +12,10 @@ def logger(request):
 
 @server.on('connect')
 def connect(req):
-    req.send(['Hello World!'])
-    for item in range(10):
-        req.emit('sin', sin(time()))
+    data = req.recv()
+    method = sin if data['need'] == 'sin' else cos
+    for item in range(data['times']):
+        req.emit(data['need'], method(time()))
     return True
 
 if __name__ == "__main__":
