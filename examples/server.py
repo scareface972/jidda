@@ -1,3 +1,6 @@
+from time import time
+from math import sin
+from traceback import format_exc
 from jidda.server import Server
 server = Server('localhost:6000')
 
@@ -10,6 +13,14 @@ def logger(request):
 @server.on('connect')
 def connect(req):
     req.send(['Hello World!'])
+    for item in range(10):
+        req.send(sin(time()))
+    return True
+
+@server.on('error')
+def error(exception):
+    print(format_exc(exception))
+    return True
 
 if __name__ == "__main__":
     server.run()

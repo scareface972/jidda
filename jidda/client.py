@@ -1,9 +1,10 @@
 from gevent import spawn, joinall
 from gevent.socket import socket
 
-from jidda.events import EventContext
 from jidda.wrappers import Response
-from jidda.utils import parse_addr, runner_factory, MiddlewareContext
+from jidda.utils import parse_addr, runner_factory
+from jidda.mixins.events import EventContext
+from jidda.mixins.middleware import MiddlewareContext
 
 class Client(object):
     def __init__(self, addr):

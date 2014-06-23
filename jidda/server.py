@@ -4,9 +4,11 @@ from socket import SOL_SOCKET, SO_REUSEADDR
 from gevent import socket
 from gevent.server import StreamServer
 
-from jidda.utils import parse_addr, runner_factory, MiddlewareContext, \
-                        EventContext
+from jidda.mixins.events import EventContext
+from jidda.mixins.middleware import MiddlewareContext
+from jidda.utils import parse_addr, runner_factory
 from jidda.wrappers import Request
+
 
 class Server(object):
     def __init__(self, addr=None, timeout=2):

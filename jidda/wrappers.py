@@ -30,16 +30,20 @@ class Request(object):
             self.disconnected = True
 
     def recv(self):
-        content_length = int(self.rfile.readline().strip())
-        payload = self.rfile.read(content_length)
+        bits = self.rfile.readline()
+        if not bits:
+            return
+        content_length = int(bits.strip())
+        payload = self.rfile.read(content_length + 1)
         try:
+            payload = payload[:-1]
             return loads(payload)
         except (ValueError, UnpackException) as error:
             raise BadPayload(error)
 
     def send(self, message):
         payload = dumps(message)
-        string = '{length}\n{payload}'.format(length=len(payload), payload=payload)
+        string = '{length}\n{payload}\n'.format(length=len(payload), payload=payload)
         self.socket.sendall(string)
 
 
