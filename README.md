@@ -63,7 +63,7 @@ if __name__ == "__main__":
     client.disconnect()
 ```
 
-## socket.io style apps
+## `socket.io` style apps
 
 To build apps in the style of `socket.io`
 with basic event emitting and what not, you
