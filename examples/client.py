@@ -5,11 +5,15 @@ c = Client('localhost:6000')
 @c.on('connect')
 def respond_connect(res):
     print(res.recv())
-    while True:
-        datum = res.recv()
-        if datum is None:
-            break
-        print(datum)
+    counter = []
+    @res.listeners.on('sin')
+    def respond_sin(data):
+        counter.append(data)
+        if len(counter) == 10:
+            res.disconnect()
+        print(data)
+        return True
+    res.begin_listening()
     return True
 
 @c.on('error')

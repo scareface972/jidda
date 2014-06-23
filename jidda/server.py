@@ -5,7 +5,7 @@ from gevent.server import StreamServer
 
 from jidda.mixins.events import EventContext
 from jidda.mixins.middleware import MiddlewareContext
-from jidda.utils import parse_addr, runner_factory
+from jidda.utils import parse_addr, runner_factory, print_traceback_on_error
 from jidda.wrappers import Request
 
 
@@ -43,6 +43,11 @@ class Server(object):
 
     def run(self, **options):
         self.setup_socket()
+        if 'debug' in options:
+            debug = options.pop('debug')
+            if debug:
+                self.on('error')(print_traceback_on_error)
+
         server = StreamServer(self.socket, self.callback, **options)
         server.serve_forever()
 

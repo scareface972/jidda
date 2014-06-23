@@ -14,13 +14,8 @@ def logger(request):
 def connect(req):
     req.send(['Hello World!'])
     for item in range(10):
-        req.send(sin(time()))
-    return True
-
-@server.on('error')
-def error(exception):
-    print(format_exc(exception))
+        req.emit('sin', sin(time()))
     return True
 
 if __name__ == "__main__":
-    server.run()
+    server.run(debug=True)

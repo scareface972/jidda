@@ -1,3 +1,5 @@
+from traceback import format_exc
+
 def parse_addr(string):
     if isinstance(string, tuple):
         return string
@@ -18,3 +20,7 @@ def runner_factory(instance, wrapper_class, before=None):
             context.disconnect()
             instance.trigger('teardown', context)
     return runner
+
+def print_traceback_on_error(traceback):
+    print(format_exc(traceback))
+    return True
