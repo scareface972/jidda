@@ -6,122 +6,47 @@ servers based on `gevent` and `msgpack`. A very
 simple example of a server:
 
 ```python
+import time
+from math import sin
 from jidda.server import Server
 app = Server('localhost:8000')
 
 @app.on('connect')
 def respond_connect(req):
-    req.send({'msg':'Hello World!'})
-    datum = req.recv()
-    print(datum)
+    data = req.recv()
+    for i in range(data.get('times', 10)):
+        req.emit('sin', sin(time.time()))
     return True
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
 ```
 
-Middleware or request preprocessors can also
-be used, and can be easily registered so they
-can be ran programmatically when the request
-is heard by the server:
-
-```python
-@app.use
-def logger(req):
-    string = '[{time}] {peer}'.format(time=req.time, peer=req.peer)
-    print(string)
-    return req
-```
-
-You can also preconfigure the server socket
-to, for example, lower the timeout or tweak
-some of the more advanced options using the
-`configure_socket` decorator:
-
-```python
-@app.configure_socket
-def config(socket):
-    socket.settimeout(0.3)
-```
-
-And a simple client example that will take
-the dictionary and invert it (make it's
-keys it's values and vice-versa).
+And the corresponding client code, that will
+get the sin-ififed seconds since epoch and
+print them:
 
 ```python
 from jidda.client import Client
 client = Client('localhost:8000')
 
 @client.on('connect')
-def respond_connect(res):
-    data = res.recv()
-    res.send(dict((v,k) for k,v in data.items()))
+def connect(res):
+    res.ctx.stack = []
+
+    @res.listeners.on('sin')
+    def enqueue_sin(data):
+        res.ctx.stack.append(data)
+
+    res.begin_listening()
+    for item in res.ctx.stack:
+        print(item)
     return True
 
 if __name__ == "__main__":
     client.connect(connections=1)
     client.disconnect()
 ```
-
-## `socket.io` style apps
-
-To build apps in the style of `socket.io`
-with basic event emitting and what not, you
-can set up a listener on the request object,
-for example:
-
-```python
-@client.on('connect')
-def respond_connect(res):
-    queue = []
-    jobdict = {}
-
-    @res.listeners.on('job')
-    def enqueue_task(data):
-        queue.append(data)
-        greenlet = gevent.spawn(do_job, data)
-        jobdict[data['id']] = greenlet
-
-    res.begin_listening()
-    return True
-```
-
-And then you can basically write the following
-code on the server in order to `emit` the
-_events_ with data, also using the msgpack
-protocol:
-
-```python
-@app.on('connect')
-def connect(req):
-    for job_data in queue:
-        req.emit('job', job_data)
-    return True
-```
-
-## request-local context
-
-It is possible to share state between functions
-that run during the `connect`, `disconnect`,
-and `teardown` event by utilizing the `ctx`
-attribute of request objects, for example:
-
-```python
-@app.on('connect')
-def connect(req):
-    req.ctx.user = User(...)
-    return True
-
-@app.on('teardown')
-def teardown(req):
-    user = req.ctx.user
-    user.save()
-```
-
-Similar to the `flask.g` object the `Request.ctx`
-or `Response.ctx` object is created per request
-and since it is passed to your functions, it
-isn't a thread-local value.
 
 ## Notes
 
